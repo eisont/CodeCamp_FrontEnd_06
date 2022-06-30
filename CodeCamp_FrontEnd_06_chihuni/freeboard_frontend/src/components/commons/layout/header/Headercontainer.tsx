@@ -1,49 +1,15 @@
-import * as S from "./Headerstyles";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Script from "next/script";
 import { useRecoilState } from "recoil";
 import { BasketCountState } from "../../../../commons/store";
-import LoginUserbar from "../loginuserbar";
-
-// 포인트 충전
-const CREATE_POINT_TRANSACTION_OF_LOADING = gql`
-  mutation createPointTransactionOfLoading($impUid: ID!) {
-    createPointTransactionOfLoading(impUid: $impUid) {
-      _id
-      impUid
-      amount
-    }
-  }
-`;
-// 회원정보 확인
-const FETCH_USER_LOGGED_IN = gql`
-  query fetchUserLoggedIn {
-    fetchUserLoggedIn {
-      _id
-      email
-      name
-      picture
-      userPoint {
-        amount
-      }
-      createdAt
-    }
-  }
-`;
-// 찜하기
-const FETCH_USED_ITEMS_COUNT_IPICKED = gql`
-  query fetchUseditemsCountIPicked {
-    fetchUseditemsCountIPicked
-  }
-`;
-// 로그아웃
-const LOGOUTUSER = gql`
-  mutation logoutUser {
-    logoutUser
-  }
-`;
+import {
+  CREATE_POINT_TRANSACTION_OF_LOADING,
+  FETCH_USED_ITEMS_COUNT_IPICKED,
+  FETCH_USER_LOGGED_IN,
+  LOGOUT_USER,
+} from "../header/Headerqueries";
+import LayoutHeaderUI from "./Headerpresenter";
 
 // IMP 타입을 이렇게 지정해줍니다.
 declare const window: typeof globalThis & {
@@ -54,7 +20,7 @@ export default function LayoutHeader() {
   const router = useRouter();
   const [chargePrice] = useState(100);
   const [basketCount, setBasketCount] = useRecoilState(BasketCountState);
-  const [logoutUser] = useMutation(LOGOUTUSER);
+  const [logoutUser] = useMutation(LOGOUT_USER);
   const { data } = useQuery(FETCH_USED_ITEMS_COUNT_IPICKED);
   const [createPointTransactionOfLoading] = useMutation(
     CREATE_POINT_TRANSACTION_OF_LOADING
@@ -126,52 +92,14 @@ export default function LayoutHeader() {
   };
 
   return (
-    <>
-      <Script
-        type="text/javascript"
-        src="https://code.jquery.com/jquery-1.12.4.min.js"
-      ></Script>
-      {/* <!-- iamport.payment.js --> */}
-      <Script
-        type="text/javascript"
-        src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"
-      ></Script>
-
-      <S.Wrapper>
-        <LoginUserbar />
-        <S.HomeBt onClick={onClickHome}></S.HomeBt>
-        {loggedIn?.fetchUserLoggedIn._id ? (
-          <>
-            <S.Point>
-              <S.Text>
-                {loggedIn?.fetchUserLoggedIn?.name} 님의 포인트{" "}
-                <u>{loggedIn?.fetchUserLoggedIn?.userPoint?.amount}</u>P
-              </S.Text>
-            </S.Point>
-            <S.Menu>
-              <S.MenuBt onClick={onClickPoint}>충전</S.MenuBt>
-            </S.Menu>
-            <S.Menu>
-              <S.MenuBt onClick={onClickLogout}>로그아웃</S.MenuBt>
-            </S.Menu>
-          </>
-        ) : (
-          <>
-            <S.Menu>
-              <S.MenuBt onClick={onClickLogin}>로그인</S.MenuBt>
-            </S.Menu>
-            <S.Menu>
-              <S.MenuBt onClick={onClickJoin}>회원가입</S.MenuBt>
-            </S.Menu>
-          </>
-        )}
-        <S.MenuBasketBt>
-          찜<S.BasketNum>{data?.fetchUseditemsCountIPicked}</S.BasketNum>
-        </S.MenuBasketBt>
-        <S.MenuBasketBt>
-          장바구니<S.BasketNum>{basketCount}</S.BasketNum>
-        </S.MenuBasketBt>
-      </S.Wrapper>
-    </>
+    <LayoutHeaderUI
+      data={data}
+      basketCount={basketCount}
+      onClickHome={onClickHome}
+      onClickLogin={onClickLogin}
+      onClickLogout={onClickLogout}
+      onClickJoin={onClickJoin}
+      onClickPoint={onClickPoint}
+    />
   );
 }
